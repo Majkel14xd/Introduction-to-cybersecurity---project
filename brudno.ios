@@ -1,0 +1,117 @@
+vtp domain michal.lidwa
+vtp password cisco12345
+vtp mode client
+vtp version 2
+
+vtp domain michal.lidwa
+vtp password cisco12345
+vtp mode server
+vtp version 2
+
+vlan 99
+name ADMIN
+vlan 77
+name SERVER
+vlan 101
+name USER101
+vlan 102
+name USER102
+
+interface range FastEthernet0/1-24
+ no switchport mode access
+ no switchport port-security
+ no switchport port-security maximum 2
+ no switchport port-security violation restrict 
+ no spanning-tree portfast
+ no spanning-tree bpduguard enable
+
+
+interface GigabitEthernet0/0/0.77
+ encapsulation dot1Q 77
+ ip address 192.168.77.1 255.255.255.0
+ standby 4 ip 192.168.77.3
+ standby 4 priority 150
+ standby 4 preempt
+!
+interface GigabitEthernet0/0/0.99
+ encapsulation dot1Q 99
+ ip address 192.168.99.1 255.255.255.0
+ standby 3 ip 192.168.99.3
+ standby 3 priority 150
+ standby 3 preempt
+!
+interface GigabitEthernet0/0/0.101
+ encapsulation dot1Q 101
+ ip address 192.168.101.1 255.255.255.0
+ standby 1 ip 192.168.101.3
+ standby 1 priority 150
+ standby 1 preempt
+!
+interface GigabitEthernet0/0/0.102
+ encapsulation dot1Q 102
+ ip address 192.168.102.1 255.255.255.0
+ standby 2 ip 192.168.102.3
+ standby 2 priority 150
+ standby 2 preempt
+!
+
+
+
+interface GigabitEthernet0/0/0.77
+ encapsulation dot1Q 77
+ ip address 192.168.77.2 255.255.255.0
+ standby 4 ip 192.168.77.3
+ standby 4 priority 100
+ standby 4 preempt
+!
+interface GigabitEthernet0/0/0.99
+ encapsulation dot1Q 99
+ ip address 192.168.99.2 255.255.255.0
+ standby 3 ip 192.168.99.3
+ standby 3 priority 100
+ standby 3 preempt
+!
+interface GigabitEthernet0/0/0.101
+ encapsulation dot1Q 101
+ ip address 192.168.101.2 255.255.255.0
+ standby 1 ip 192.168.101.3
+ standby 1 priority 100
+ standby 1 preempt
+!
+interface GigabitEthernet0/0/0.102
+ encapsulation dot1Q 102
+ ip address 192.168.102.2 255.255.255.0
+ standby 2 ip 192.168.102.3
+ standby 2 priority 100
+ standby 2 preempt
+!
+
+
+ip dhcp pool DHCPSERVERPOOLVLAN77
+ network 192.168.77.0 255.255.255.0
+ default-router 192.168.77.3
+ ip dhcp excluded-address 192.168.77.1 192.168.77.3
+ 
+ ip dhcp pool DHCPSERVERPOOLVLAN99
+ network 192.168.99.0 255.255.255.0
+ default-router 192.168.99.3
+ ip dhcp excluded-address 192.168.99.1 192.168.99.3
+  
+ ip dhcp pool DHCPSERVERPOOLVLAN101
+ network 192.168.101.0 255.255.255.0
+ default-router 192.168.101.3
+ ip dhcp excluded-address 192.168.101.1 192.168.101.3
+  
+ ip dhcp pool DHCPSERVERPOOLVLAN102
+ network 192.168.102.0 255.255.255.0
+ default-router 192.168.102.3
+ ip dhcp excluded-address 192.168.102.1 192.168.102.3
+ 
+ 
+ 
+
+
+no ip dhcp pool DHCPSERVERPOOLVLAN77
+no ip dhcp pool DHCPSERVERPOOLVLAN99
+no ip dhcp pool DHCPSERVERPOOLVLAN101
+no ip dhcp pool DHCPSERVERPOOLVLAN102
