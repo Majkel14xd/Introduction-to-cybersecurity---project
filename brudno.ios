@@ -115,3 +115,65 @@ no ip dhcp pool DHCPSERVERPOOLVLAN77
 no ip dhcp pool DHCPSERVERPOOLVLAN99
 no ip dhcp pool DHCPSERVERPOOLVLAN101
 no ip dhcp pool DHCPSERVERPOOLVLAN102
+
+router eigrp 5000
+ eigrp router-id 2.2.2.2
+ redistribute bgp 1002 
+ network 81.26.4.4 0.0.0.3
+ network 160.6.4.4 0.0.0.3
+!
+router bgp 1002
+ no synchronization
+ neighbor 81.26.4.5 remote-as 1001
+ network 81.26.4.4 mask 255.255.255.252
+ network 160.6.4.4 mask 255.255.255.252
+ redistribute eigrp 5000 
+
+
+ router bgp 1001
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 81.26.4.2 remote-as 1002
+ network 192.168.77.0
+ network 192.168.99.0
+ network 192.168.101.0
+ network 192.168.102.0
+ network 81.26.4.0 mask 255.255.255.252
+
+
+ router bgp 1001
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 81.26.4.6 remote-as 1002
+ network 192.168.77.0
+ network 192.168.99.0
+ network 192.168.101.0
+ network 192.168.102.0
+ network 81.26.4.4 mask 255.255.255.252
+
+
+
+
+
+ router eigrp 5000
+ eigrp router-id 1.1.1.1
+ redistribute bgp 1002 
+ network 81.26.4.0 0.0.0.3
+ network 160.6.4.0 0.0.0.3
+!
+router bgp 1002
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 81.26.4.1 remote-as 1001
+ network 81.26.4.0 mask 255.255.255.252
+ network 160.6.4.0 mask 255.255.255.252
+ redistribute eigrp 5000 
+!
+
+
+router bgp 2001
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 81.26.5.2 remote-as 2002
+ network 192.168.1.0
+ network 81.26.5.0 mask 255.255.255.252
