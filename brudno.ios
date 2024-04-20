@@ -177,3 +177,180 @@ router bgp 2001
  neighbor 81.26.5.2 remote-as 2002
  network 192.168.1.0
  network 81.26.5.0 mask 255.255.255.252
+
+
+spanning-tree vlan 77,99 priority 32768
+spanning-tree vlan 101,102 priority 28672
+
+
+spanning-tree vlan 77,99 priority 28672
+spanning-tree vlan 101,102 priority 32768
+
+
+ network 81.26.5.0 0.0.0.3 area 0
+ network 160.6.4.8 0.0.0.3 area 0
+
+ no network 192.168.101.0 mask 255.255.255.0
+ no network 192.168.102.0 mask 255.255.255.0
+
+ access-list 1 permit 192.168.101.0 0.0.0.255
+ access-list 1 permit 192.168.102.0 0.0.0.255
+ ip nat inside source list 1 interface Serial0/1/0 overload
+
+
+ no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname GATEA_MANAGMENT_NETWORK
+!
+!
+!
+!
+ip dhcp excluded-address 199.170.77.1 199.170.77.3
+ip dhcp excluded-address 199.170.99.1 199.170.99.3
+ip dhcp excluded-address 192.168.101.1 192.168.101.3
+ip dhcp excluded-address 192.168.102.1 192.168.102.3
+ip dhcp excluded-address 199.170.77.4 199.170.77.5
+ip dhcp excluded-address 199.170.77.6
+ip dhcp excluded-address 192.168.101.6
+ip dhcp excluded-address 199.170.77.7
+!
+ip dhcp pool DHCPSERVERPOOLVLAN77
+ network 199.170.77.0 255.255.255.0
+ default-router 199.170.77.3
+ip dhcp pool DHCPSERVERPOOLVLAN99
+ network 199.170.99.0 255.255.255.0
+ default-router 199.170.99.3
+ip dhcp pool DHCPSERVERPOOLVLAN101
+ network 192.168.101.0 255.255.255.0
+ default-router 192.168.101.3
+ip dhcp pool DHCPSERVERPOOLVLAN102
+ network 192.168.102.0 255.255.255.0
+ default-router 192.168.102.3
+
+!
+!
+!
+!
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+ip ssh version 2
+ip domain-name mlidwa.pl
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0/0
+ no ip address
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/0/0.77
+ encapsulation dot1Q 77
+ ip address 199.170.77.1 255.255.255.0
+ standby 4 ip 199.170.77.3
+ standby 4 priority 150
+ standby 4 preempt
+!
+interface GigabitEthernet0/0/0.99
+ encapsulation dot1Q 99
+ ip address 199.170.99.1 255.255.255.0
+ standby 3 ip 199.170.99.3
+ standby 3 priority 150
+ standby 3 preempt
+!
+interface GigabitEthernet0/0/0.101
+ encapsulation dot1Q 101
+ ip address 192.168.101.1 255.255.255.0
+ ip nat inside
+ standby 1 ip 192.168.101.3
+ standby 1 priority 150
+ standby 1 preempt
+!
+interface GigabitEthernet0/0/0.102
+ encapsulation dot1Q 102
+ ip address 192.168.102.1 255.255.255.0
+ ip nat inside
+ standby 2 ip 192.168.102.3
+ standby 2 priority 150
+ standby 2 preempt
+!
+interface GigabitEthernet0/0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Serial0/1/0
+ ip address 81.26.4.1 255.255.255.252
+ ip nat outside
+!
+interface Serial0/1/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router bgp 1001
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 81.26.4.2 remote-as 1002
+ network 199.170.77.0
+ network 199.170.99.0
+ network 81.26.4.0 mask 255.255.255.252
+!
+ip nat inside source list 1 interface Serial0/1/0 overload
+ip classless
+!
+ip flow-export version 9
+!
+!
+access-list 1 permit 192.168.101.0 0.0.0.255
+access-list 1 permit 192.168.102.0 0.0.0.255
+!
+!
+
+!
+!
+!
+logging 199.170.77.7
+line con 0
+!
+line aux 0
+!
+!
+ntp authenticate
+ntp trusted-key 14
+ntp server 199.170.77.4
+ntp update-calendar
+!
+end
