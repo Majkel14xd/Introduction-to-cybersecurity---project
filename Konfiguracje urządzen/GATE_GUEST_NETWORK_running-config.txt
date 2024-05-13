@@ -1,0 +1,135 @@
+!
+version 15.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname GATE_GUEST_NETWORK
+!
+!
+!
+!
+ip dhcp excluded-address 192.168.1.1
+!
+ip dhcp pool DHCPSERVER
+ network 192.168.1.0 255.255.255.0
+ default-router 192.168.1.1
+ip dhcp pool DHCP
+ network 222.210.12.0 255.255.255.0
+ default-router 222.210.12.1
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+crypto isakmp policy 100
+ encr aes
+ authentication pre-share
+ group 5
+ lifetime 3600
+!
+crypto isakmp key cisco123 address 81.26.4.1
+!
+!
+!
+crypto ipsec transform-set GATE_GUEST-GATE-A esp-aes esp-sha-hmac
+crypto ipsec transform-set GATE_GUEST-GATE-B esp-aes esp-sha-hmac
+!
+crypto map GATE_GUEST-GATE_A-MAP 101 ipsec-isakmp 
+ set peer 81.26.4.1
+ set transform-set GATE_GUEST-GATE-A 
+ match address 101
+!
+!
+crypto map GATE_GUEST-GATE_B-MAP 101 ipsec-isakmp 
+ set peer 81.26.4.5
+ set transform-set GATE_GUEST-GATE-B 
+ match address 101
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0/0
+ ip address 192.168.1.1 255.255.255.0
+ ip nat inside
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/0/1
+ ip address 222.210.12.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Serial0/1/0
+ ip address 81.26.5.1 255.255.255.252
+ ip nat outside
+ clock rate 2000000
+ crypto map GATE_GUEST-GATE_A-MAP
+!
+interface Serial0/1/1
+ no ip address
+ clock rate 2000000
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 2002
+ log-adjacency-changes
+ network 81.26.5.0 0.0.0.3 area 0
+ network 222.210.12.0 0.0.0.255 area 0
+!
+router bgp 2002
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 81.26.5.2 remote-as 2003
+ network 81.26.5.0 mask 255.255.255.252
+ network 222.210.12.0
+!
+ip nat inside source list 1 interface Serial0/1/0 overload
+ip classless
+!
+ip flow-export version 9
+!
+!
+access-list 1 permit 192.168.1.0 0.0.0.255
+access-list 101 permit ip 222.210.12.0 0.0.0.255 199.170.77.0 0.0.0.255
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+ntp authenticate
+ntp trusted-key 14
+ntp server 199.170.77.4
+ntp update-calendar
+!
+end
+

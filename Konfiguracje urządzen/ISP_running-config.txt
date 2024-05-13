@@ -1,0 +1,104 @@
+!
+version 15.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname ISP
+!
+!
+!
+!
+!
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface GigabitEthernet0/0/0
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Serial0/1/0
+ ip address 160.6.4.10 255.255.255.252
+!
+interface Serial0/1/1
+ ip address 160.6.4.14 255.255.255.252
+!
+interface Serial0/2/0
+ ip address 160.6.4.2 255.255.255.252
+ clock rate 2000000
+!
+interface Serial0/2/1
+ ip address 160.6.4.6 255.255.255.252
+ clock rate 2000000
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router eigrp 5000
+ eigrp router-id 4.4.4.4
+ network 160.6.4.0 0.0.0.3
+ network 160.6.4.4 0.0.0.3
+ network 160.6.4.8 0.0.0.3
+ network 160.6.4.12 0.0.0.3
+!
+ip classless
+!
+ip flow-export version 9
+!
+!
+!
+!
+!
+!
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+ntp authenticate
+ntp trusted-key 14
+ntp server 199.170.77.4
+ntp update-calendar
+!
+end
+

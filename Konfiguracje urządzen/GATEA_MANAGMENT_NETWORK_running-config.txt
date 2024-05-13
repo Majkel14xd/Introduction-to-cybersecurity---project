@@ -1,0 +1,239 @@
+!
+version 15.4
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+service password-encryption
+!
+hostname GATEA_MANAGMENT_NETWORK
+!
+!
+!
+!
+ip dhcp excluded-address 199.170.77.1 199.170.77.3
+ip dhcp excluded-address 199.170.99.1 199.170.99.3
+ip dhcp excluded-address 192.168.101.1 192.168.101.3
+ip dhcp excluded-address 192.168.102.1 192.168.102.3
+ip dhcp excluded-address 199.170.77.4 199.170.77.5
+ip dhcp excluded-address 199.170.77.6
+ip dhcp excluded-address 192.168.101.6
+ip dhcp excluded-address 199.170.77.7
+ip dhcp excluded-address 199.170.99.101 199.170.99.254
+ip dhcp excluded-address 199.170.77.101 199.170.77.254
+!
+ip dhcp pool DHCPSERVERPOOLVLAN77
+ network 199.170.77.0 255.255.255.0
+ default-router 199.170.77.3
+ip dhcp pool DHCPSERVERPOOLVLAN99
+ network 199.170.99.0 255.255.255.0
+ default-router 199.170.99.3
+ip dhcp pool DHCPSERVERPOOLVLAN101
+ network 192.168.101.0 255.255.255.0
+ default-router 192.168.101.3
+ip dhcp pool DHCPSERVERPOOLVLAN102
+ network 192.168.102.0 255.255.255.0
+ default-router 192.168.102.3
+!
+!
+aaa new-model
+!
+aaa authentication login RADIUS group radius local 
+!
+!
+!
+aaa accounting exec ACCOUNT start-stop group radius
+!
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+crypto isakmp policy 100
+ encr aes
+ authentication pre-share
+ group 5
+ lifetime 3600
+!
+crypto isakmp key cisco123 address 81.26.5.1
+!
+!
+!
+crypto ipsec transform-set GATE_A-GATE_GUEST esp-aes esp-sha-hmac
+!
+crypto map GATE_A-GATE_GUEST-MAP 101 ipsec-isakmp 
+ set peer 81.26.5.1
+ set transform-set GATE_A-GATE_GUEST 
+ match address 101
+!
+!
+!
+!
+ip ssh version 2
+ip domain-name mlidwa.pl
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface Loopback1
+ ip address 10.0.0.1 255.255.255.0
+!
+interface Tunnel1
+ ip address 172.16.0.1 255.255.255.0
+ mtu 1476
+ tunnel source Loopback1
+ tunnel destination 10.0.0.2
+!
+!
+interface GigabitEthernet0/0/0
+ no ip address
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/0/0.77
+ encapsulation dot1Q 77
+ ip address 199.170.77.1 255.255.255.0
+ ip access-group PRINT77-BLOCKISP in
+ standby 4 ip 199.170.77.3
+ standby 4 priority 150
+ standby 4 preempt
+!
+interface GigabitEthernet0/0/0.99
+ encapsulation dot1Q 99
+ ip address 199.170.99.1 255.255.255.0
+ standby 3 ip 199.170.99.3
+ standby 3 priority 150
+ standby 3 preempt
+!
+interface GigabitEthernet0/0/0.101
+ encapsulation dot1Q 101
+ ip address 192.168.101.1 255.255.255.0
+ ip access-group VLAN101-102BLOCK in
+ ip access-group VLAN102-101BLOCK out
+ ip nat inside
+ standby 1 ip 192.168.101.3
+ standby 1 priority 150
+ standby 1 preempt
+!
+interface GigabitEthernet0/0/0.102
+ encapsulation dot1Q 102
+ ip address 192.168.102.1 255.255.255.0
+ ip access-group VLAN102-101BLOCK in
+ ip access-group VLAN101-102BLOCK out
+ ip nat inside
+ standby 2 ip 192.168.102.3
+ standby 2 priority 150
+ standby 2 preempt
+!
+interface GigabitEthernet0/0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/0/2
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface Serial0/1/0
+ ip address 81.26.4.1 255.255.255.252
+ ip access-group BLOCKIPS-PRINT77 in
+ ip nat outside
+ crypto map GATE_A-GATE_GUEST-MAP
+!
+interface Serial0/1/1
+ no ip address
+ clock rate 2000000
+ shutdown
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 1001
+ log-adjacency-changes
+ network 199.170.77.0 0.0.0.255 area 0
+ network 199.170.99.0 0.0.0.255 area 0
+ network 192.168.101.0 0.0.0.255 area 0
+ network 192.168.102.0 0.0.0.255 area 0
+ network 10.0.0.0 0.0.0.255 area 0
+ network 172.16.0.0 0.0.0.255 area 0
+!
+router bgp 1001
+ bgp log-neighbor-changes
+ no synchronization
+ neighbor 81.26.4.2 remote-as 1002
+ network 199.170.77.0
+ network 199.170.99.0
+ network 81.26.4.0 mask 255.255.255.252
+!
+ip nat inside source list 1 interface Serial0/1/0 overload
+ip classless
+!
+ip flow-export version 9
+!
+!
+access-list 1 permit 192.168.101.0 0.0.0.255
+access-list 1 permit 192.168.102.0 0.0.0.255
+ip access-list standard SSH_ACCESS
+ permit 199.170.99.0 0.0.0.255
+ deny any
+ip access-list extended VLAN101-102BLOCK
+ deny ip 192.168.101.0 0.0.0.255 192.168.102.0 0.0.0.255
+ permit ip any any
+ip access-list extended VLAN102-101BLOCK
+ deny ip 192.168.102.0 0.0.0.255 192.168.101.0 0.0.0.255
+ permit ip any any
+ip access-list extended BLOCKIPS-PRINT77
+ deny ip any host 199.170.77.6
+ permit ip any any
+ip access-list extended PRINT77-BLOCKISP
+ permit ip host 199.170.77.6 199.170.77.0 0.0.0.255
+ permit ip host 199.170.77.6 199.170.99.0 0.0.0.255
+ deny ip host 199.170.77.6 any
+ permit ip any any
+access-list 101 permit ip 199.170.77.0 0.0.0.255 222.210.12.0 0.0.0.255
+!
+!
+radius server WINRADIUS
+ address ipv4 199.170.77.5 auth-port 1645
+ key RadiusKey1
+radius server 199.170.77.5
+ address ipv4 199.170.77.5 auth-port 1645
+ key RadiusKey1
+!
+!
+!
+logging 199.170.77.7
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ access-class SSH_ACCESS in
+ login authentication RADIUS
+ accounting exec ACCOUNT
+ transport input ssh
+line vty 5 15
+ access-class SSH_ACCESS in
+ login authentication RADIUS
+ accounting exec ACCOUNT
+ transport input ssh
+!
+!
+ntp authenticate
+ntp trusted-key 14
+ntp server 199.170.77.4
+ntp update-calendar
+!
+end
+
